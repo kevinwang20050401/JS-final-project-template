@@ -1,14 +1,17 @@
+var HP=100;
 var clock=0;
 var FPS = 60;
 var bgImg = document.createElement("img");
 var badguy = document.createElement("img");
 var towerimg = document.createElement("img");
 var castleimg = document.createElement("img");
+var crosshairimg = document.createElement("img");
 // 設定這個元素的要顯示的圖片
 bgImg.src = "images/ground.png";
 badguy.src = "images/rukia.gif";
 towerimg.src = "images/tower-btn.png";
 castleimg.src = "images/tower.png";
+crosshairimg.src = "images/crosshair.png";
 // 找出網頁中的 canvas 元素
 var canvas = document.getElementById("game-canvas");
 
@@ -17,16 +20,28 @@ var ctx = canvas.getContext("2d");
 
 function draw(){
 	clock++;
-	if((clock%90)==0){
+	if((clock%1)==0){
 		var newEnemy=new Enemy();
 		enemies.push(newEnemy);
 	}
 	// 將背景圖片畫在 canvas 上的 (0,0) 位置
   ctx.drawImage(bgImg,0,0);
   for(var i=0;i<enemies.length;i++){
+     if(enemies[i].hp<=0){
+     	enemies.splice(i,1);
+     }
+
      enemies[i].move();
      ctx.drawImage(badguy,enemies[i].x,enemies[i].y);
   }
+  tower.searchEnemy();
+  if(tower.aimingEnemyId!=null){
+  	var id=tower.aimingEnemyId;
+  	ctx.drawImage(crosshairimg,enemies[id].x,enemies[id].y);
+  }
+  ctx.fillText("HP:"+HP,32,32);
+  ctx.font="24px Arial";
+  ctx.fillStyle="white";
   ctx.drawImage(towerimg,576,416,64,64);
   if (isBuilding==true){
   ctx.drawImage(castleimg,cursor.x-cursor.x%32,cursor.y-cursor.y%32);
@@ -68,6 +83,7 @@ var enemypath=[
 function Enemy(){
 	this.x=64;
 	this.y=480-96;
+	this.hp=4;
 	this.speedX=0;
 	this.speedY=-64;
 	this.pathDes=0;
@@ -76,6 +92,11 @@ function Enemy(){
            this.x=enemypath[this.pathDes].x;
            this.y=enemypath[this.pathDes].y;
            this.pathDes++; 
+           if(this.pathDes==enemypath.length){
+           	this.hp=0;
+           	HP-=10;
+           	return;
+           }
            if(enemypath[this.pathDes].y<this.y){
                this.speedX=0;
                this.speedY=-64;
@@ -102,7 +123,19 @@ var cursor={
 };
 var tower={
   x:0,
-  y:0
+  y:0,
+  range:128,
+  ainmingEnemyId:null,
+  searchEnemy: function(){
+		for(var i=0; i<enemies.length; i++){
+			var distance = Math.sqrt(Math.pow(this.x-enemies[i].x,2) + Math.pow(this.y-enemies[i].y,2));
+			if (distance<=this.range) {
+				this.aimingEnemyId = i;
+				return;
+			}
+		}
+		this.aimingEnemyId = null;
+	}
 };
 $("#game-canvas").on("mousemove",mousemove);
 function mousemove(event){
