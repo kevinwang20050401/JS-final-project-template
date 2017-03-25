@@ -22,7 +22,7 @@ var ctx = canvas.getContext("2d");
 
 function draw(){
 	clock++;
-	if((clock%20)==0){
+	if((clock%1)==0){
 		var newEnemy=new Enemy();
 		enemies.push(newEnemy);
 	}
@@ -42,13 +42,14 @@ function draw(){
   if(isBuilding==true){
   ctx.drawImage(castleimg,cursor.x-cursor.x%32,cursor.y-cursor.y%32);
 };	  
- for (var i = 0; i < towers.length; i++) {
-  ctx.drawImage(castleimg,towers[i].x,towers[i].y);
-  if(tower.aimingEnemyId!=null){
-  	var id=tower.aimingEnemyId;
-  	ctx.drawImage(crosshairimg,enemies[id].x,enemies[id].y);
+  for (var i = 0; i < towers.length; i++) {
+   	ctx.drawImage(castleimg,towers[i].x,towers[i].y);
+   	towers[i].searchEnemy();
+  	if(towers[i].aimingEnemyId!=null){
+ 	 	var id=towers[i].aimingEnemyId;
+  		ctx.drawImage(crosshairimg,enemies[id].x,enemies[id].y);
+ 	 }
   }
-}
   ctx.fillText("HP:"+HP,32,32);
   ctx.font="24px Arial";
   ctx.fillStyle="white";
@@ -59,8 +60,17 @@ function draw(){
   ctx.font="24px Arial";
   ctx.fillStyle="white";
   ctx.drawImage(towerimg,576,416,64,64);
+  if(HP<=0){
+  	clearInterval(intervalID)
+  	ctx.font="64px Arial";
+  	ctx.fillStyle="red";
+  	ctx.fillText("Game over",32*6,32*4);
+  	ctx.fillText(" You got ",32*6,32*6);
+  	ctx.fillText(score+"point",32*6,32*8);
+  }
+};
 // 執行 draw 函式
-setInterval(draw,1000/FPS);
+var intervalID=setInterval(draw,1000/FPS);
 var enemypath=[
     {x:64,y:192},
     {x:128,y:192},
@@ -180,7 +190,7 @@ function mouseclick(){
   	 	if(money>=25){
   	 		var newTower=new Tower();
   	 		newTower.x=cursor.x-cursor.x%32
-  	 		newTower.y=cursor.y-cursor.x%32
+  	 		newTower.y=cursor.y-cursor.y%32
   	 		towers.push(newTower);
   	 		money-=25;
   	 	}
